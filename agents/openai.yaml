@@ -1,0 +1,6 @@
+interface:
+  display_name: "antigravity-websearch"
+  short_description: "Standalone-first Antigravity-style browser probing and research"
+  default_prompt: "Use antigravity-websearch for this task."
+policy:
+  allow_implicit_invocation: true
