@@ -44,6 +44,7 @@ This now defaults to `standalone` mode and stays cheap enough to use as a first 
 Interpretation rules:
 
 - `standalone_ready=true` means local Chrome exists and the reusable standalone profile path is known.
+- `standalone_profile_busy=true` means another Chrome process is already holding the reusable standalone profile, so a second persistent-context launch may fail until that holder exits.
 - The default JSON is intentionally compact to reduce token waste in follow-up agents.
 - Use `--verbose` only when you need extra path existence or running-state details.
 
@@ -155,6 +156,14 @@ Default behavior:
 - one Chrome run for both screenshot and DOM capture
 - compact JSON output aligned to the minimum acceptable result shape
 - standalone profile reuse for better speed on repeated runs
+
+## Interactive App Notes
+
+For authenticated creative apps and other app-shell products:
+
+- Confirm whether you are in the real app shell or only on a marketing or about page before concluding that an action is missing.
+- If a control exists visually but role-based selectors are unstable, fall back to a short DOM-text marker that is actually rendered in the button, then click it in the same browser session.
+- Prefer one uninterrupted session for `new project -> prompt -> generate` flows so state is not lost between steps.
 
 ## Subagent Lane
 

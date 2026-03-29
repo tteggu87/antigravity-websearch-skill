@@ -104,6 +104,54 @@ def process_running(image_name: str) -> bool:
     return image_name in completed.stdout
 
 
+def profile_holder_pids(profile_dir: Path, image_name: str = "chrome.exe") -> list[int]:
+    normalized_profile = str(profile_dir).strip()
+    if not normalized_profile:
+        return []
+    env = os.environ.copy()
+    env["AG_PROFILE_PATH"] = normalized_profile.lower()
+    env["AG_IMAGE_NAME"] = image_name
+    script = r"""
+$needle = $env:AG_PROFILE_PATH
+$image = $env:AG_IMAGE_NAME
+$matches = Get-CimInstance Win32_Process -Filter "name='$image'" |
+    Where-Object { $_.CommandLine -and $_.CommandLine.ToLower().Contains($needle) } |
+    Select-Object -ExpandProperty ProcessId
+if ($null -eq $matches) {
+    '[]'
+} else {
+    $matches | ConvertTo-Json -Compress
+}
+"""
+    try:
+        completed = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", script],
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
+    except Exception:  # noqa: BLE001
+        return []
+    if completed.returncode != 0 or not completed.stdout.strip():
+        return []
+    try:
+        decoded = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return []
+    if isinstance(decoded, int):
+        return [decoded]
+    if isinstance(decoded, list):
+        pids: list[int] = []
+        for pid in decoded:
+            try:
+                pids.append(int(pid))
+            except (TypeError, ValueError):
+                continue
+        return pids
+    return []
+
+
 def launch_antigravity(app_exe: Path) -> bool:
     if not app_exe.exists():
         return False
@@ -116,10 +164,12 @@ def launch_antigravity(app_exe: Path) -> bool:
 
 def build_standalone_report(paths: dict[str, Path], verbose: bool) -> dict[str, Any]:
     chrome_exe = paths["chrome_exe"]
+    holder_pids = profile_holder_pids(paths["standalone_profile"])
     report: dict[str, Any] = {
         "mode": "standalone",
         "summary": {
             "standalone_ready": bool(chrome_exe),
+            "standalone_profile_busy": bool(holder_pids),
         },
         "paths": {
             "chrome_exe": str(chrome_exe) if chrome_exe else "",
@@ -128,6 +178,7 @@ def build_standalone_report(paths: dict[str, Path], verbose: bool) -> dict[str, 
     }
     if verbose:
         report["summary"]["chrome_running"] = process_running("chrome.exe")
+        report["summary"]["standalone_profile_busy_pids"] = holder_pids
         report["paths"]["app_exe"] = str(paths["app_exe"])
         report["exists"] = {name: path.exists() for name, path in paths.items() if str(path)}
     return report

@@ -31,6 +31,7 @@ Interpretation:
 ## Known good expectations
 
 - `probe_antigravity.py --json` should emit a compact standalone-first report.
+- When the reusable standalone profile is already held by Chrome, verbose standalone output should also expose `standalone_profile_busy=true` and the holding PIDs.
 - `capture_dom_evidence.py --json` should return:
   - `target_section`
   - `role_targets`
@@ -45,3 +46,8 @@ Interpretation:
 3. Probe standalone mode first.
 4. Probe bridge mode only if you truly need CDP or MCP behavior.
 5. Replace local examples from private notes with your own discovered paths before documenting machine-specific setup elsewhere.
+
+## Interactive app reminder
+
+- Some authenticated tools open a marketing or about page before the real app shell. Confirm the current shell before assuming a button such as `new project` is missing.
+- For multi-step creative flows, prefer one uninterrupted browser session from project creation through generation.

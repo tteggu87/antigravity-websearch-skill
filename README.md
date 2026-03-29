@@ -21,6 +21,12 @@ The main design choices are:
 - small DOM excerpts instead of full dumps
 - screenshot-backed evidence for UI claims
 
+Recent practical improvements:
+
+- standalone probe now exposes `standalone_profile_busy` so profile-lock failures are visible before a second persistent browser launch crashes
+- interactive app runs are documented with a bias toward staying in one session for `new project -> prompt -> generate`
+- public guidance now calls out that some products first land on a marketing or about page before the authenticated app shell
+
 ## Quick start
 
 From the repository root:
@@ -62,3 +68,4 @@ raise SystemExit(subprocess.call([
 - The public package intentionally removes machine-specific private paths from the skill instructions.
 - The probe and capture scripts still assume a Windows-style Chrome installation pattern.
 - Output defaults to `artifacts/` under the current working directory.
+- For authenticated browser apps, check whether you are in the real app shell before deciding a control is missing.
